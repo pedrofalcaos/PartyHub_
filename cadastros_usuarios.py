@@ -84,7 +84,33 @@ class SistemaCadastro:
             print("Erro: Usuário não encontrado.")
             return False
 
+def main_menu(sistema):
+    while True:
+        print("\nSistema de Cadastro")
+        print("1. Cadastrar Usuário")
+        print("2. Alterar Dados")
+        print("3. Cancelar Conta")
+        print("4. Sair")
+        escolha = input("Escolha uma opção: ")
 
-# Exemplo de uso do sistema
-sistema = SistemaCadastro()
-sistema.cadastrar_usuario()
+        if escolha == '1':
+            sistema.cadastrar_usuario()
+        elif escolha == '2':
+            email = input("Digite o email do usuário para atualização: ")
+            nome = input("Digite o novo nome (ou deixe em branco para não alterar): ")
+            cpf_cnpj = input("Digite o novo CPF/CNPJ (ou deixe em branco para não alterar): ")
+            tipo_usuario = input("Digite o novo tipo de usuário (ou deixe em branco para não alterar): ")
+            telefone = input("Digite o novo telefone (ou deixe em branco para não alterar): ")
+            sistema.alterar_dados(email, nome, cpf_cnpj, tipo_usuario, telefone)
+        elif escolha == '3':
+            email = input("Digite o email do usuário para cancelar a conta: ")
+            sistema.cancelar_conta(email)
+        elif escolha == '4':
+            print("Saindo do sistema...")
+            break
+        else:
+            print("Opção inválida. Por favor, escolha uma opção válida.")
+
+if __name__ == "__main__":
+    sistema = SistemaCadastro()
+    main_menu(sistema)
