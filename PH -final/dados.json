@@ -1,0 +1,47 @@
+{
+    "pedroandre10@hotmail.com": {
+        "nome": "Pedro Andr\u00e9",
+        "email": "pedroandre10@hotmail.com",
+        "cpf_cnpj": "10806846461",
+        "tipo_usuario": "cliente",
+        "telefone": "81999399545",
+        "logradouro": "Rua Mariz Vilela, 25",
+        "cep": "50720270",
+        "senha": "Pe123dro",
+        "eventos": {
+            "1": {
+                "detalhes_evento": "Anivers\u00e1rio 30 anos",
+                "endereco_evento": "Rua Neto campelo",
+                "data_evento": "1995-02-18 00:00:00",
+                "hora_evento": "13:00",
+                "orcamentos": [
+                    {
+                        "id": "orc_1",
+                        "servicos": [
+                            "Entretenimento"
+                        ],
+                        "detalhes_adicionais": "Banda de Pagaode",
+                        "valor_planejado": "1000",
+                        "status": "Aceito",
+                        "fornecedor": "Souza Aquino",
+                        "email_cliente": "pedroandre10@hotmail.com",
+                        "telefone_cliente": "81999399545"
+                    }
+                ]
+            }
+        },
+        "preferencias_notificacao": "N\u00e3o receber notifica\u00e7\u00f5es"
+    },
+    "eea@gmail.com": {
+        "nome": "Souza Aquino",
+        "email": "eea@gmail.com",
+        "cpf_cnpj": "32888425000175",
+        "tipo_usuario": "fornecedor",
+        "telefone": "8132273158",
+        "logradouro": "Rua manuel de arruda camara",
+        "cep": "50710450",
+        "senha": "Pe123dro",
+        "eventos": {},
+        "preferencias_notificacao": "N\u00e3o receber notifica\u00e7\u00f5es"
+    }
+}

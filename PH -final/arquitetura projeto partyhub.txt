@@ -1,0 +1,26 @@
+projeto/
+│
+├── dados/
+│   └── dados.json
+│
+├── entidades/
+│   ├── usuario.py
+│   ├── evento.py
+│   ├── orcamento.py
+│   └── convidado.py
+│
+├── servicos/
+│   ├── servico_usuario.py
+│   ├── servico_evento.py
+│   ├── servico_orcamento.py
+│   └── servico_convite.py
+│
+├── interfaces/
+│   ├── interface_usuario.py
+│   ├── interface_fornecedor.py
+│   └── interface_convite.py
+│
+├── gerenciamento/
+│   └── gerenciamento_dados.py
+│
+└── main.py
