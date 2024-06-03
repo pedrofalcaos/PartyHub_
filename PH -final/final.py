@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 
+
 class SistemaCadastro:
     def __init__(self):
         self.usuarios = {}
@@ -38,6 +39,10 @@ class SistemaCadastro:
                             evento["data_evento"] = datetime.strptime(evento["data_evento"], "%Y-%m-%d %H:%M:%S")
                         if "hora_evento" not in evento:
                             evento["hora_evento"] = "Não especificada"
+                        if "convidados" not in evento:
+                            evento["convidados"] = []
+                        if "feedbacks" not in evento:
+                            evento["feedbacks"] = []
                 print("\033[1;32mDados carregados com sucesso!\033[m")
             except Exception as e:
                 print(f"\033[1;31mErro ao carregar dados: {e}\033[m")
@@ -102,7 +107,8 @@ class SistemaCadastro:
             if self.validar_telefone(telefone):
                 break
             else:
-                print("\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
+                print(
+                    "\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
 
         logradouro = input("Digite o logradouro: ").strip()
         while True:
@@ -138,7 +144,8 @@ class SistemaCadastro:
         if re.match(r"^\d{2}\d{8,9}$", telefone):
             return True
         else:
-            print("\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
+            print(
+                "\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
             return False
 
     def validar_cpf(self, cpf):
@@ -186,7 +193,8 @@ class SistemaCadastro:
 
     def criar_senha(self):
         while True:
-            print("\033[1;34mA senha deve conter pelo menos um número, uma letra maiúscula e ter mais de 5 caracteres.\033[m")
+            print(
+                "\033[1;34mA senha deve conter pelo menos um número, uma letra maiúscula e ter mais de 5 caracteres.\033[m")
             senha = input("Crie uma senha para o usuário: ").strip()
             senha_confirmacao = input("Confirme sua senha: ").strip()
 
@@ -194,7 +202,8 @@ class SistemaCadastro:
                 if re.search(r'[A-Z]', senha) and re.search(r'\d', senha) and len(senha) >= 5:
                     return senha
                 else:
-                    print("\033[1;31mSenha inválida. Certifique-se de que sua senha atenda aos requisitos e tente novamente.\033[m")
+                    print(
+                        "\033[1;31mSenha inválida. Certifique-se de que sua senha atenda aos requisitos e tente novamente.\033[m")
             else:
                 print("\033[1;31mAs senhas não coincidem. Por favor, tente novamente.\033[m")
 
@@ -234,7 +243,9 @@ class SistemaCadastro:
             "endereco_evento": endereco_evento,
             "data_evento": data_evento,
             "hora_evento": hora_evento,
-            "orcamentos": []
+            "orcamentos": [],
+            "convidados": [],
+            "feedbacks": []
         }
         self.salvar_dados()
         print(f"\033[1;32mEvento cadastrado com sucesso! 🎉 ID do evento: {evento_id}\033[m")
@@ -280,7 +291,8 @@ class SistemaCadastro:
         evento_id = int(input("Digite o ID do evento que deseja cancelar: "))
 
         if evento_id in self.usuarios[email]['eventos']:
-            confirmacao = input("Tem certeza de que deseja cancelar o evento? Esta ação também cancelará todos os orçamentos associados. (s/n): ").strip().lower()
+            confirmacao = input(
+                "Tem certeza de que deseja cancelar o evento? Esta ação também cancelará todos os orçamentos associados. (s/n): ").strip().lower()
             if confirmacao == 's':
                 del self.usuarios[email]['eventos'][evento_id]
                 self.salvar_dados()
@@ -403,9 +415,128 @@ class SistemaCadastro:
                         print(f"\033[1;36mStatus: {orcamento['status']}\033[m")
                         if orcamento['fornecedor']:
                             print(f"\033[1;36mFornecedor: {orcamento['fornecedor']}\033[m")
+                            if "rating" in orcamento:
+                                print(f"\033[1;36mAvaliação: {orcamento['rating']}/5\033[m")
+                            if "comentario" in orcamento:
+                                print(f"\033[1;36mComentário: {orcamento['comentario']}\033[m")
+                if evento['convidados']:
+                    for convidado in evento['convidados']:
+                        print(f"\033[1;36mConvidado: {convidado['nome']}\033[m")
+                        print(f"\033[1;36mEmail: {convidado['email']}\033[m")
+                        print(f"\033[1;36mTelefone: {convidado['telefone']}\033[m")
                 print("-" * 20)
         else:
             print("\033[1;31mVocê não possui eventos cadastrados.\033[m")
+
+    def cadastrar_convidados(self, email):
+        self.visualizar_eventos(email)
+        evento_id = int(input("Digite o ID do evento para o qual deseja cadastrar convidados: "))
+
+        if evento_id in self.usuarios[email]['eventos']:
+            evento = self.usuarios[email]['eventos'][evento_id]
+            while True:
+                nome = input("Digite o nome do convidado: ").strip()
+                telefone = input("Digite o telefone do convidado (com DDD): ").strip()
+                email_convidado = input("Digite o email do convidado: ").strip()
+
+                convidado = {
+                    "nome": nome,
+                    "telefone": telefone,
+                    "email": email_convidado
+                }
+                evento['convidados'].append(convidado)
+                self.salvar_dados()
+                print(f"\033[1;32mConvidado {nome} cadastrado com sucesso!\033[m")
+
+                continuar = input("Deseja cadastrar outro convidado? (s/n): ").strip().lower()
+                if continuar != 's':
+                    break
+        else:
+            print("\033[1;31mID do evento não encontrado.\033[m")
+
+    def enviar_convites(self, email):
+        self.visualizar_eventos(email)
+        evento_id = int(input("Digite o ID do evento para o qual deseja enviar convites: "))
+
+        if evento_id in self.usuarios[email]['eventos']:
+            evento = self.usuarios[email]['eventos'][evento_id]
+            if evento['convidados']:
+                mensagem = ""
+                incluir_mensagem = input("Deseja incluir uma mensagem personalizada? (s/n): ").strip().lower()
+                if incluir_mensagem == 's':
+                    mensagem = input("Digite a mensagem personalizada: ").strip()
+                convite_preview = f"Convite para o evento {evento['detalhes_evento']}\n"
+                convite_preview += f"Local: {evento['endereco_evento']}\n"
+                convite_preview += f"Data: {evento['data_evento'].strftime('%d/%m/%Y')}\n"
+                convite_preview += f"Hora: {evento['hora_evento']}\n"
+                convite_preview += f"Organizado por: {self.usuarios[email]['nome']}\n"
+                convite_preview += f"Telefone do organizador: {self.usuarios[email]['telefone']}\n"
+                if mensagem:
+                    convite_preview += f"Mensagem: {mensagem}\n"
+
+                print("\033[1;34mPré-visualização do Convite:\033[m")
+                print(convite_preview)
+
+                confirmar_envio = input("Deseja enviar os convites? (s/n): ").strip().lower()
+                if confirmar_envio == 's':
+                    for convidado in evento['convidados']:
+                        print(f"Enviando convite para {convidado['nome']} ({convidado['email']})...")
+                        # Simulação de envio de email
+                        print(f"Convite enviado para {convidado['email']}")
+                    print("\033[1;32mTodos os convites foram enviados com sucesso!\033[m")
+                else:
+                    print("\033[1;34mEnvio de convites cancelado.\033[m")
+            else:
+                print("\033[1;31mNenhum convidado cadastrado para este evento.\033[m")
+        else:
+            print("\033[1;31mID do evento não encontrado.\033[m")
+
+    def registrar_feedback(self, email):
+        self.visualizar_eventos(email)
+        evento_id = int(input("Digite o ID do evento para o qual deseja registrar feedback: "))
+
+        if evento_id in self.usuarios[email]['eventos']:
+            evento = self.usuarios[email]['eventos'][evento_id]
+            orcamentos_aceitos = [orc for orc in evento['orcamentos'] if
+                                  orc['status'] == 'Aceito' and datetime.now() > evento["data_evento"]]
+
+            if not orcamentos_aceitos:
+                print("\033[1;31mNenhum orçamento aceito encontrado ou o evento ainda não ocorreu.\033[m")
+                return
+
+            print("\033[1;34mOrçamentos Aceitos:\033[m")
+            for i, orc in enumerate(orcamentos_aceitos):
+                print(f"{i + 1}. Orçamento ID: {orc['id']}")
+                print(f"   Serviços: {', '.join(orc['servicos'])}")
+                print(f"   Valor Planejado: R$ {orc['valor_planejado']}")
+                print(f"   Fornecedor: {orc['fornecedor']}")
+                if "rating" in orc:
+                    print(f"   Avaliação: {orc['rating']}/5")
+                if "comentario" in orc:
+                    print(f"   Comentário: {orc['comentario']}")
+
+            escolha = int(input("Digite o número do orçamento que deseja avaliar: ").strip())
+            if 1 <= escolha <= len(orcamentos_aceitos):
+                orcamento_selecionado = orcamentos_aceitos[escolha - 1]
+
+                rating = int(input("Avalie o serviço de 0 a 5: ").strip())
+                comentario = input("Escreva um comentário sobre o serviço: ").strip()
+
+                feedback = {
+                    "rating": rating,
+                    "comentario": comentario
+                }
+
+                orcamento_selecionado['rating'] = rating
+                orcamento_selecionado['comentario'] = comentario
+                evento['feedbacks'].append(feedback)
+
+                self.salvar_dados()
+                print("\033[1;32mFeedback registrado com sucesso!\033[m")
+            else:
+                print("\033[1;31mOpção inválida.\033[m")
+        else:
+            print("\033[1;31mID do evento não encontrado.\033[m")
 
     def alterar_dados(self, email):
         usuario = self.usuarios.get(email)
@@ -433,7 +564,8 @@ class SistemaCadastro:
                         print("\033[1;32mTelefone alterado com sucesso!\033[m")
                         break
                     else:
-                        print("\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
+                        print(
+                            "\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
             elif escolha == '3':
                 novo_logradouro = input("Digite o novo logradouro: ").strip()
                 usuario['logradouro'] = novo_logradouro
@@ -487,6 +619,8 @@ class SistemaCadastro:
                         print(f"  Serviços: {', '.join(orcamento['servicos'])}")
                         print(f"  Detalhes Adicionais: {orcamento['detalhes_adicionais']}")
                         print(f"  Valor Planejado: R$ {orcamento['valor_planejado']}")
+                        if "rating" in orcamento:
+                            print(f"  Avaliação: {orcamento['rating']}/5")
                         aceitar = input(f"Deseja aceitar este orçamento? (s/n): ").strip().lower()
                         if aceitar == 's':
                             orcamento['status'] = 'Aceito'
@@ -510,6 +644,10 @@ class SistemaCadastro:
                         print(f"  Detalhes Adicionais: {orcamento['detalhes_adicionais']}")
                         print(f"  Email do Cliente: {orcamento['email_cliente']}")
                         print(f"  Telefone do Cliente: {orcamento['telefone_cliente']}")
+                        if "rating" in orcamento:
+                            print(f"  Avaliação: {orcamento['rating']}/5")
+                        if "comentario" in orcamento:
+                            print(f"  Comentário: {orcamento['comentario']}")
 
     def atualizar_preferencias_notificacao(self, email):
         print("\033[1;34mEscolha a preferência de notificação:\033[m")
@@ -539,8 +677,10 @@ class SistemaCadastro:
             print("2. Cancelar Conta")
             print("3. Eventos")
             print("4. Orçamentos")
-            print("5. Atualizar Preferências de Notificação")
-            print("6. Sair")
+            print("5. Convidados")
+            print("6. Feedback")
+            print("7. Atualizar Preferências de Notificação")
+            print("8. Sair")
             escolha = input("Escolha uma opção: ")
 
             if escolha == '1':
@@ -553,8 +693,12 @@ class SistemaCadastro:
             elif escolha == '4':
                 self.menu_orcamentos_cliente(email)
             elif escolha == '5':
-                self.atualizar_preferencias_notificacao(email)
+                self.menu_convidados_cliente(email)
             elif escolha == '6':
+                self.registrar_feedback(email)
+            elif escolha == '7':
+                self.atualizar_preferencias_notificacao(email)
+            elif escolha == '8':
                 print("\033[1;34mVocê saiu do sistema.\033[m")
                 break
             else:
@@ -606,6 +750,23 @@ class SistemaCadastro:
             else:
                 print("\033[1;31mOpção inválida. Por favor, escolha uma opção válida.\033[m")
 
+    def menu_convidados_cliente(self, email):
+        while True:
+            print("\n\033[1;34mMenu de Convidados:\033[m")
+            print("1. Cadastrar Convidados")
+            print("2. Enviar Convites")
+            print("3. Voltar")
+            escolha = input("Escolha uma opção: ")
+
+            if escolha == '1':
+                self.cadastrar_convidados(email)
+            elif escolha == '2':
+                self.enviar_convites(email)
+            elif escolha == '3':
+                break
+            else:
+                print("\033[1;31mOpção inválida. Por favor, escolha uma opção válida.\033[m")
+
     def menu_fornecedor(self, email):
         while True:
             print("\n\033[1;34mMenu do Fornecedor:\033[m")
@@ -613,8 +774,9 @@ class SistemaCadastro:
             print("2. Cancelar Conta")
             print("3. Visualizar e Aceitar Propostas de Orçamento")
             print("4. Meus Orçamentos Aceitos")
-            print("5. Atualizar Preferências de Notificação")
-            print("6. Sair")
+            print("5. Feedback")
+            print("6. Atualizar Preferências de Notificação")
+            print("7. Sair")
             escolha = input("Escolha uma opção: ")
 
             if escolha == '1':
@@ -627,12 +789,15 @@ class SistemaCadastro:
             elif escolha == '4':
                 self.visualizar_orcamentos_aceitos(email)
             elif escolha == '5':
-                self.atualizar_preferencias_notificacao(email)
+                self.registrar_feedback(email)
             elif escolha == '6':
+                self.atualizar_preferencias_notificacao(email)
+            elif escolha == '7':
                 print("\033[1;34mVocê saiu do sistema.\033[m")
                 break
             else:
                 print("\033[1;31mOpção inválida. Por favor, escolha uma opção válida.\033[m")
+
 
 def main_menu(sistema):
     sistema.carregar_dados()
@@ -653,6 +818,7 @@ def main_menu(sistema):
             break
         else:
             print("\033[1;31mOpção inválida. Por favor, escolha uma opção válida.\033[m")
+
 
 if __name__ == "__main__":
     sistema = SistemaCadastro()
