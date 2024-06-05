@@ -66,6 +66,7 @@ class SistemaCadastro:
                         break
                 else:
                     print("\033[1;31mCPF inválido. Por favor, digite um CPF válido.\033[m")
+            nome = input("Digite o nome: ").strip()
         elif tipo_escolha == '2':
             tipo_usuario = "fornecedor"
             while True:
@@ -77,16 +78,10 @@ class SistemaCadastro:
                         break
                 else:
                     print("\033[1;31mCNPJ inválido. Por favor, digite um CNPJ válido.\033[m")
+            nome = input("Digite a razão social: ").strip()
         else:
             print("\033[1;31mEntrada inválida. Tente novamente.\033[m")
             return
-
-        if tipo_escolha == '1':
-            nome = input("Digite o nome: ").strip()
-        else:
-            nome = input("Digite a razão social: ").strip()
-
-        senha = self.criar_senha()
 
         while True:
             email = input("Digite o email: ").strip()
@@ -102,6 +97,8 @@ class SistemaCadastro:
             else:
                 print("\033[1;31mPor favor, insira um email válido.\033[m")
 
+        senha = self.criar_senha()
+
         while True:
             telefone = input("Digite o telefone (com DDD): ").strip()
             if self.validar_telefone(telefone):
@@ -110,13 +107,14 @@ class SistemaCadastro:
                 print(
                     "\033[1;31mNúmero de telefone inválido. Por favor, insira um número com DDD seguido de 8 ou 9 dígitos.\033[m")
 
-        logradouro = input("Digite o logradouro: ").strip()
         while True:
             cep = input("Digite o CEP: ").strip()
             if self.validar_cep(cep):
                 break
             else:
                 print("\033[1;31mCEP inválido. Por favor, digite um CEP válido.\033[m")
+
+        logradouro = input("Digite o logradouro: ").strip()
 
         self.usuarios[email] = {
             "nome": nome,
@@ -199,13 +197,13 @@ class SistemaCadastro:
             senha_confirmacao = input("Confirme sua senha: ").strip()
 
             if senha == senha_confirmacao:
-                if re.search(r'[A-Z]', senha) and re.search(r'\d', senha) and len(senha) >= 5:
+                if re.search(r'[0-9]', senha) and re.search(r'[A-Z]', senha) and len(senha) > 5:
                     return senha
                 else:
                     print(
-                        "\033[1;31mSenha inválida. Certifique-se de que sua senha atenda aos requisitos e tente novamente.\033[m")
+                        "\033[1;31mSenha fraca. A senha deve conter pelo menos um número, uma letra maiúscula e ter mais de 5 caracteres.\033[m")
             else:
-                print("\033[1;31mAs senhas não coincidem. Por favor, tente novamente.\033[m")
+                print("\033[1;31mAs senhas não coincidem. Por favor, digite novamente.\033[m")
 
     def login(self):
         email = input("Digite seu email: ").strip()
@@ -519,7 +517,16 @@ class SistemaCadastro:
             if 1 <= escolha <= len(orcamentos_aceitos):
                 orcamento_selecionado = orcamentos_aceitos[escolha - 1]
 
-                rating = int(input("Avalie o serviço de 0 a 5: ").strip())
+                while True:
+                    try:
+                        rating = float(input("Avalie o serviço de 0 a 5: ").strip())
+                        if 0 <= rating <= 5:
+                            break
+                        else:
+                            print("\033[1;31mEntrada inválida. Por favor, insira uma nota entre 0 e 5.\033[m")
+                    except ValueError:
+                        print("\033[1;31mEntrada inválida. Por favor, insira uma nota válida.\033[m")
+
                 comentario = input("Escreva um comentário sobre o serviço: ").strip()
 
                 feedback = {
@@ -605,6 +612,7 @@ class SistemaCadastro:
             return False
 
     def visualizar_orcamentos_disponiveis(self, email):
+        orcamentos_disponiveis = False
         for email_cliente, dados_usuario in self.usuarios.items():
             for evento_id, evento in dados_usuario.get('eventos', {}).items():
                 print(f"\033[1;34mEvento ID: {evento_id}\033[m")
@@ -615,6 +623,7 @@ class SistemaCadastro:
                 print("Orçamentos disponíveis:")
                 for orcamento in evento['orcamentos']:
                     if orcamento['status'] == 'Pendente' and not orcamento['fornecedor']:
+                        orcamentos_disponiveis = True
                         print(f"  Orçamento ID: {orcamento['id']}")
                         print(f"  Serviços: {', '.join(orcamento['servicos'])}")
                         print(f"  Detalhes Adicionais: {orcamento['detalhes_adicionais']}")
@@ -629,6 +638,8 @@ class SistemaCadastro:
                             orcamento['telefone_cliente'] = dados_usuario['telefone']
                             self.salvar_dados()
                             print("\033[1;32mOrçamento aceito com sucesso!\033[m")
+        if not orcamentos_disponiveis:
+            print("\033[1;31mNenhum orçamento disponível no momento.\033[m")
 
     def visualizar_orcamentos_aceitos(self, email):
         print("\033[1;34mOrçamentos Aceitos:\033[m")
@@ -648,6 +659,29 @@ class SistemaCadastro:
                             print(f"  Avaliação: {orcamento['rating']}/5")
                         if "comentario" in orcamento:
                             print(f"  Comentário: {orcamento['comentario']}")
+
+    def visualizar_feedbacks_fornecedor(self, email):
+        print("\033[1;34mFeedbacks Recebidos:\033[m")
+        total_avaliacoes = 0
+        soma_avaliacoes = 0
+        for email_cliente, dados_usuario in self.usuarios.items():
+            for evento_id, evento in dados_usuario.get('eventos', {}).items():
+                for orcamento in evento['orcamentos']:
+                    if orcamento['fornecedor'] == self.usuarios[email]['nome']:
+                        if 'rating' in orcamento and 'comentario' in orcamento:
+                            total_avaliacoes += 1
+                            soma_avaliacoes += orcamento['rating']
+                            print(f"Evento ID: {evento_id}")
+                            print(f"Cliente: {dados_usuario['nome']}")
+                            print(f"Serviço: {', '.join(orcamento['servicos'])}")
+                            print(f"Rating: {orcamento['rating']}/5")
+                            print(f"Comentário: {orcamento['comentario']}")
+                            print("-" * 20)
+        if total_avaliacoes > 0:
+            media_avaliacoes = soma_avaliacoes / total_avaliacoes
+            print(f"\033[1;34mRating Médio: {media_avaliacoes:.2f}/5\033[m")
+        else:
+            print("\033[1;31mNenhum feedback recebido ainda.\033[m")
 
     def atualizar_preferencias_notificacao(self, email):
         print("\033[1;34mEscolha a preferência de notificação:\033[m")
@@ -774,7 +808,7 @@ class SistemaCadastro:
             print("2. Cancelar Conta")
             print("3. Visualizar e Aceitar Propostas de Orçamento")
             print("4. Meus Orçamentos Aceitos")
-            print("5. Feedback")
+            print("5. Ver Feedbacks Recebidos")
             print("6. Atualizar Preferências de Notificação")
             print("7. Sair")
             escolha = input("Escolha uma opção: ")
@@ -789,7 +823,7 @@ class SistemaCadastro:
             elif escolha == '4':
                 self.visualizar_orcamentos_aceitos(email)
             elif escolha == '5':
-                self.registrar_feedback(email)
+                self.visualizar_feedbacks_fornecedor(email)
             elif escolha == '6':
                 self.atualizar_preferencias_notificacao(email)
             elif escolha == '7':
